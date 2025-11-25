@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-app-stage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
+    targetRevision: main
+    path: overlays/stage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pipeline-app-stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

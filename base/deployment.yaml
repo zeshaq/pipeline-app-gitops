@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipeline-app
+  labels:
+    app: pipeline-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipeline-app
+  template:
+    metadata:
+      labels:
+        app: pipeline-app
+    spec:
+      containers:
+        - name: pipeline-app
+          # Use the immutable SHA digest here instead of :latest
+          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app@sha256:<SHA_DIGEST>
+          ports:
+            - containerPort: 8080
