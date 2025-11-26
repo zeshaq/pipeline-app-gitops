@@ -1,6 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipeline-app
+  name: pipeline-app-final
 spec:
   replicas: 2

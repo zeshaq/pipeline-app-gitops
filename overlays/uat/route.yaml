@@ -1,11 +1,11 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: pipeline-app
+  name: pipeline-app-uat
 spec:
   host: pipeline-app-uat.zeteq.com
   to:
     kind: Service
-    name: pipeline-app
+    name: pipeline-app-final-service
   tls:
     termination: edge

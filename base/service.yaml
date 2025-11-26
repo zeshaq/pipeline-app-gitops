@@ -1,11 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pipeline-app-final
+  name: pipeline-app-final-service
+  labels:
+    app: pipeline-app-final
 spec:
   selector:
     app: pipeline-app-final
   ports:
-    - protocol: TCP
+    - name: http
       port: 80
       targetPort: 8080
+      protocol: TCP
