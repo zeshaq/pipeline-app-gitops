@@ -17,7 +17,7 @@ spec:
       containers:
         - name: pipeline-app-final
           # Use the immutable SHA digest here instead of :latest
-          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app-final@sha256:f0d1fcd030b2e7e749ba62f78a72f1b42fb90dc5f915f1004dee9cc20c7e9892
+          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app-final@sha256:b656ed00eec81f96c68fe029926be99540333c8d55b4f7376b954b359412bec1
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
