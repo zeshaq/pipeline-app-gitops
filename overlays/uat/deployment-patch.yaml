@@ -3,4 +3,4 @@ kind: Deployment
 metadata:
   name: pipeline-app-final
 spec:
-  replicas: 1
+  replicas: 3
