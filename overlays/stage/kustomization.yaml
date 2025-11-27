@@ -4,7 +4,10 @@ namespace: pipeline-app-stage
 
 resources:
   - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
   - route.yaml
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: pipeline-app-final

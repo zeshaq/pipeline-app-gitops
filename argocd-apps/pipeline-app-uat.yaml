@@ -1,19 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pipeline-app-final-uat
+  name: pipeline-app-uat
   namespace: openshift-gitops
 spec:
   project: default
   source:
     repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
-    targetRevision: HEAD
+    targetRevision: main
     path: overlays/uat
   destination:
     server: https://kubernetes.default.svc
     namespace: pipeline-app-uat
   syncPolicy:
     automated:
-      enabled: true
       prune: true
       selfHeal: true

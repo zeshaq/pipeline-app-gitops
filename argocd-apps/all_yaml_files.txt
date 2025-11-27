@@ -1,0 +1,63 @@
+===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-prod.yaml =====
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-app-prod
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
+    targetRevision: main
+    path: overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pipeline-app-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+
+===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-stage.yaml =====
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-app-stage
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
+    targetRevision: main
+    path: overlays/stage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pipeline-app-stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+
+===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-uat.yaml =====
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-app-uat
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
+    targetRevision: main
+    path: overlays/uat
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pipeline-app-uat
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+

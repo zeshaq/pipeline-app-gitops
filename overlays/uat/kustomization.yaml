@@ -4,6 +4,7 @@ namespace: pipeline-app-uat
 
 resources:
   - ../../base
+  - route.yaml
 
 patches:
   - path: deployment-patch.yaml

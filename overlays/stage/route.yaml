@@ -2,10 +2,15 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: pipeline-app-stage
+  annotations:
+    haproxy.router.openshift.io/ssl-cert: apps-wildcard-tls-secret
 spec:
-  host: pipeline-app-stage.zeteq.com
+  host: pipeline-app-stage.apps.cluster-realip.zeteq.com
   to:
     kind: Service
     name: pipeline-app-final-service
+  port:
+    targetPort: http
   tls:
     termination: edge
+    insecureEdgeTerminationPolicy: Redirect

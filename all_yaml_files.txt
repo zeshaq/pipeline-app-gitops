@@ -5,17 +5,20 @@ namespace: pipeline-app-prod
 
 resources:
   - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
   - route.yaml
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: pipeline-app-final
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/prod/deployment-patch.yaml =====
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipeline-app
+  name: pipeline-app-final
 spec:
   replicas: 3
 
@@ -24,14 +27,19 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: pipeline-app
+  name: pipeline-app-prod
+  annotations:
+    haproxy.router.openshift.io/ssl-cert: apps-wildcard-tls-secret
 spec:
-  host: pipeline-app-prod.zeteq.com
+  host: pipeline-app-prod.apps.cluster-realip.zeteq.com
   to:
     kind: Service
-    name: pipeline-app
+    name: pipeline-app-final-service
+  port:
+    targetPort: http
   tls:
     termination: edge
+    insecureEdgeTerminationPolicy: Redirect
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/kustomization.yaml =====
@@ -41,17 +49,20 @@ namespace: pipeline-app-uat
 
 resources:
   - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
   - route.yaml
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: pipeline-app-final
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/deployment-patch.yaml =====
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipeline-app
+  name: pipeline-app-final
 spec:
   replicas: 1
 
@@ -59,231 +70,20 @@ spec:
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/route.yaml =====
 apiVersion: route.openshift.io/v1
 kind: Route
-metadata:
-  name: pipeline-app
-spec:
-  host: pipeline-app-uat.zeteq.com
-  to:
-    kind: Service
-    name: pipeline-app
-  tls:
-    termination: edge
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/stage/kustomization.yaml =====
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: pipeline-app-stage
-
-resources:
-  - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
-  - route.yaml
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/stage/deployment-patch.yaml =====
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pipeline-app
-spec:
-  replicas: 2
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/stage/route.yaml =====
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: pipeline-app
-spec:
-  host: pipeline-app-stage.zeteq.com
-  to:
-    kind: Service
-    name: pipeline-app
-  tls:
-    termination: edge
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-prod.yaml =====
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: pipeline-app-prod
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
-    targetRevision: main
-    path: overlays/prod
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: pipeline-app-prod
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-stage.yaml =====
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: pipeline-app-stage
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
-    targetRevision: main
-    path: overlays/stage
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: pipeline-app-stage
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-uat.yaml =====
-apiVersion: argoproj.io/v1alpha1
-kind: Application
 metadata:
   name: pipeline-app-uat
-  namespace: argocd
+  annotations:
+    haproxy.router.openshift.io/ssl-cert: apps-wildcard-tls-secret
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/zeshaq/pipeline-app-gitops.git
-    targetRevision: main
-    path: overlays/uat
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: pipeline-app-uat
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/base/deployment.yaml =====
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pipeline-app-final
-  labels:
-    app: pipeline-app-final
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: pipeline-app-final
-  template:
-    metadata:
-      labels:
-        app: pipeline-app-final
-    spec:
-      containers:
-        - name: pipeline-app-final
-          # Use the immutable SHA digest here instead of :latest
-          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app-final@sha256:248a9ba09507ac79816cb691f7857a1d87b7c5a6665b1423e5f622168fb0cc9f
-          ports:
-            - containerPort: 8080
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/base/kustomization.yaml =====
-resources:
-  - deployment.yaml
-  - service.yaml
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/base/service.yaml =====
-apiVersion: v1
-kind: Service
-metadata:
-  name: pipeline-app-final
-spec:
-  selector:
-    app: pipeline-app-final
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/prod/kustomization.yaml =====
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: pipeline-app-prod
-
-resources:
-  - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
-  - route.yaml
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/prod/deployment-patch.yaml =====
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pipeline-app-final
-spec:
-  replicas: 3
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/prod/route.yaml =====
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: pipeline-app-prod
-spec:
-  host: pipeline-app-prod.zeteq.com
+  host: pipeline-app-uat.apps.cluster-realip.zeteq.com
   to:
     kind: Service
-    name: pipeline-app
+    name: pipeline-app-final-service
+  port:
+    targetPort: http
   tls:
     termination: edge
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/kustomization.yaml =====
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: pipeline-app-uat
-
-resources:
-  - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
-  - route.yaml
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/deployment-patch.yaml =====
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pipeline-app
-spec:
-  replicas: 1
-
-
-===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/uat/route.yaml =====
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: pipeline-app
-spec:
-  host: pipeline-app-uat.zeteq.com
-  to:
-    kind: Service
-    name: pipeline-app
-  tls:
-    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/stage/kustomization.yaml =====
@@ -293,17 +93,20 @@ namespace: pipeline-app-stage
 
 resources:
   - ../../base
-
-patchesStrategicMerge:
-  - deployment-patch.yaml
   - route.yaml
+
+patches:
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: pipeline-app-final
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/overlays/stage/deployment-patch.yaml =====
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipeline-app
+  name: pipeline-app-final
 spec:
   replicas: 2
 
@@ -312,14 +115,19 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: pipeline-app
+  name: pipeline-app-stage
+  annotations:
+    haproxy.router.openshift.io/ssl-cert: apps-wildcard-tls-secret
 spec:
-  host: pipeline-app-stage.zeteq.com
+  host: pipeline-app-stage.apps.cluster-realip.zeteq.com
   to:
     kind: Service
-    name: pipeline-app
+    name: pipeline-app-final-service
+  port:
+    targetPort: http
   tls:
     termination: edge
+    insecureEdgeTerminationPolicy: Redirect
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/argocd-apps/pipeline-app-prod.yaml =====
@@ -348,7 +156,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: pipeline-app-stage
-  namespace: pipeline-app-stage
+  namespace: openshift-gitops
 spec:
   project: default
   source:
@@ -369,7 +177,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: pipeline-app-uat
-  namespace: pipeline-app-uat
+  namespace: openshift-gitops
 spec:
   project: default
   source:
@@ -405,9 +213,10 @@ spec:
       containers:
         - name: pipeline-app-final
           # Use the immutable SHA digest here instead of :latest
-          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app-final@sha256:248a9ba09507ac79816cb691f7857a1d87b7c5a6665b1423e5f622168fb0cc9f
+          image: ocp-real-registry-quay-openshift-operators.apps.cluster-realip.zeteq.com/zahid/pipeline-app-final@sha256:2d67a4af1f34b52c571c39315ce4367d69789b3298aaae2a51206d3cd4505005
           ports:
             - containerPort: 8080
+          imagePullPolicy: Always
 
 
 ===== /Users/ze/pipeline-app-final/pipeline-app-gitops/base/kustomization.yaml =====
@@ -420,13 +229,16 @@ resources:
 apiVersion: v1
 kind: Service
 metadata:
-  name: pipeline-app-final
+  name: pipeline-app-final-service
+  labels:
+    app: pipeline-app-final
 spec:
   selector:
     app: pipeline-app-final
   ports:
-    - protocol: TCP
+    - name: http
       port: 80
       targetPort: 8080
+      protocol: TCP
 
 
